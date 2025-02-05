@@ -1,0 +1,177 @@
+Module,Test_Scenario,Test_Steps,Pre_Requisite,Pass_Fail_Criteria,Expected_Result
+Shopping Cart,"Verify user can add item to cart","1. Navigate to a product page.
+2. Click 'Add to Cart'.
+3. Go to the shopping cart.","User is logged in and has selected a product.","Item appears in the cart with correct quantity and price.","Item should appear in the cart with correct quantity and price."
+Search,"Search for products with special characters","1. Enter a search term with special characters (e.g., '&' or '#').
+2. Submit the search.","Search bar is accessible.","Search results display all matching products without errors.","Search results should display all matching products without errors."
+Checkout,"Attempt to complete checkout process with valid payment details","1. Add items to cart.
+2. Proceed to checkout.
+3. Enter valid payment details.","User has items in cart and valid payment method.","Payment succeeds without timeouts or retries.","Payment should succeed without timeouts or retries."
+Pricing,"Apply multiple discounts to a product and verify final price","1. Add a product to cart.
+2. Apply multiple promo codes.
+3. Verify final price.","Promo codes are active and applicable.","Final price reflects combined discount calculations accurately.","Final price should reflect combined discount calculations accurately."
+Product Page,"Load product page and verify all images are displayed","1. Navigate to a product page.
+2. Scroll through images.","Product page contains multiple images.","All product images load without errors.","All product images should load without errors."
+Authentication,"Verify user login works","1. Enter valid credentials.
+2. Submit login form.","Valid user account exists.","User is redirected to homepage.","User should be redirected to homepage."
+Wishlist,"Verify wishlist items persist","1. Add items to wishlist.
+2. Log out and log back in.
+3. Check wishlist.","User has added items to wishlist.","Wishlist items remain intact after logout/login.","Wishlist items should remain intact after logout/login."
+Category Page,"Verify filter options work","1. Navigate to a category page.
+2. Apply filters.
+3. Check results.","Category page contains filterable products.","Filtered results match applied filters.","Filtered results should match applied filters."
+Email Notifications,"Verify order confirmation email is sent","1. Place an order.
+2. Check inbox for confirmation email.","User has placed an order.","Order confirmation email is received.","Order confirmation email should be received."
+Mobile App,"Verify infinite scroll works","1. Open mobile app.
+2. Scroll down on a product list.","Mobile app is installed and functional.","Products load continuously without breaking.","Products should load continuously without breaking."
+Reviews,"Verify product reviews save","1. Write a review.
+2. Submit the review.
+3. Reload the page.","User is logged in and has purchased the product.","Review appears on the product page.","Review should appear on the product page."
+Checkout,"Verify shipping address auto-fill works","1. Proceed to checkout.
+2. Start typing address.","Address lookup API is enabled.","Auto-fill suggests valid addresses.","Auto-fill should suggest valid addresses."
+Orders,"Verify duplicate orders are not placed","1. Attempt to place the same order twice.
+2. Check order history.","User has placed an order.","Only one order appears in order history.","Only one order should appear in order history."
+Promotions,"Verify promo codes apply correctly","1. Add a product to cart.
+2. Apply promo code.
+3. Verify discounted price.","Promo code is valid and applicable.","Discounted price matches expected value.","Discounted price should match expected value."
+Search,"Verify pagination works","1. Perform a search.
+2. Navigate to next page.","Search results span multiple pages.","Next page loads correctly.","Next page should load correctly."
+Gift Cards,"Verify gift card balance updates","1. Purchase a gift card.
+2. Apply it to an order.
+3. Check balance.","Gift card is purchased and applied.","Balance reflects remaining amount.","Balance should reflect remaining amount."
+Support,"Verify chatbot responds","1. Open chatbot.
+2. Ask a question.","Chatbot is enabled.","Chatbot provides relevant response.","Chatbot should provide relevant response."
+Inventory,"Verify out-of-stock items are hidden","1. Search for an out-of-stock item.","Item is marked out-of-stock in inventory.","Item does not appear in search results.","Item should not appear in search results."
+Returns,"Verify return request submits","1. Initiate return request.
+2. Submit form.","User has placed an order.","Return request is submitted successfully.","Return request should be submitted successfully."
+Localization,"Verify translations are correct","1. Switch language on site.
+2. Check translated text.","Site supports multiple languages.","Translated text matches expected content.","Translated text should match expected content."
+Recommendations,"Verify recommendations are relevant","1. Browse products.
+2. Check recommended products.","User has browsing history.","Recommended products match user interests.","Recommended products should match user interests."
+Account Settings,"Verify saved payment methods can be deleted","1. Go to account settings.
+2. Delete a saved payment method.","User has saved payment methods.","Payment method is removed from account.","Payment method should be removed from account."
+Shipping,"Verify shipping cost is calculated correctly","1. Add items to cart.
+2. Proceed to checkout.
+3. Check shipping cost.","Shipping rates are configured.","Shipping cost matches expected value.","Shipping cost should match expected value."
+Comparison Tool,"Verify product comparison works","1. Select products to compare.
+2. View comparison table.","Products are comparable.","Comparison table displays accurate data.","Comparison table should display accurate data."
+Seller Feedback,"Verify seller feedback can be submitted","1. Leave feedback for a seller.
+2. Submit feedback.","User has purchased from seller.","Feedback is submitted successfully.","Feedback should be submitted successfully."
+Order History,"Verify order history loads","1. Go to order history.","User has placed orders.","Order history displays all orders.","Order history should display all orders."
+Homepage,"Verify homepage loads quickly","1. Load homepage.","Homepage is accessible.","Page loads within acceptable time.","Page should load within acceptable time."
+Coupons,"Verify coupon expiration date is enforced","1. Apply expired coupon.
+2. Check result.","Coupon is expired.","Coupon is rejected.","Coupon should be rejected."
+Invoicing,"Verify tax information appears on invoice","1. Generate an invoice.","Invoice is generated.","Tax information is included.","Tax information should be included."
+Profile Management,"Verify profile picture can be updated","1. Upload new profile picture.
+2. Save changes.","User is logged in.","Profile picture updates successfully.","Profile picture should update successfully."
+Sorting,"Verify sorting works","1. Sort products by price/rating.
+2. Check results.","Products are sortable.","Sorted results match criteria.","Sorted results should match criteria."
+Subscriptions,"Verify subscription renewal emails are sent","1. Wait for renewal date.
+2. Check inbox.","Subscription is active.","Renewal email is received.","Renewal email should be received."
+Tracking,"Verify shipped orders can be tracked","1. Track a shipped order.","Order is shipped.","Tracking information is displayed.","Tracking information should be displayed."
+FAQ,"Verify FAQ links work","1. Click FAQ links.","FAQ page is accessible.","Links direct to correct content.","Links should direct to correct content."
+Refunds,"Verify refund status updates","1. Request a refund.
+2. Check status.","Refund is requested.","Status updates correctly.","Status should update correctly."
+Orders,"Verify pending orders can be canceled","1. Cancel a pending order.
+2. Check order status.","Order is pending.","Order is canceled successfully.","Order should be canceled successfully."
+Currency,"Verify correct currency is displayed","1. Switch region.
+2. Check displayed currency.","Region-specific currency is supported.","Currency matches region.","Currency should match region."
+Product Variants,"Verify product variants can be selected","1. Select a product variant.
+2. Check selection.","Product has variants.","Selected variant is displayed.","Selected variant should be displayed."
+Checkout,"Verify address validation works","1. Enter valid address.
+2. Submit form.","Address validation is enabled.","Address is accepted.","Address should be accepted."
+Digital Downloads,"Verify digital purchases can be downloaded","1. Purchase a digital product.
+2. Download file.","Digital product is purchased.","File downloads successfully.","File should download successfully."
+Bulk Orders,"Verify bulk order uploads work","1. Upload bulk order file.
+2. Check results.","Bulk order file is valid.","Orders are processed successfully.","Orders should be processed successfully."
+Mobile App,"Verify product details display","1. Open product page on mobile app.","Mobile app is installed.","Product details are visible.","Product details should be visible."
+Authentication,"Verify password reset works","1. Request password reset.
+2. Reset password.","User account exists.","Password is reset successfully.","Password should be reset successfully."
+Product Images,"Verify product images zoom correctly","1. Zoom in on product image.","Product has high-resolution images.","Image zooms without blurring.","Image should zoom without blurring."
+Tax,"Verify tax exemption is applied","1. Apply tax exemption.
+2. Check tax calculation.","Tax exemption is valid.","Tax is excluded.","Tax should be excluded."
+Account Management,"Verify accounts can be merged","1. Merge two accounts.
+2. Check merged account.","Accounts are eligible for merging.","Accounts are merged successfully.","Accounts should be merged successfully."
+Social Sharing,"Verify share buttons work","1. Click share button.
+2. Check shared content.","Share buttons are enabled.","Content is shared successfully.","Content should be shared successfully."
+Navigation,"Verify breadcrumbs display","1. Navigate to category page.
+2. Check breadcrumbs.","Breadcrumbs are enabled.","Breadcrumbs display correctly.","Breadcrumbs should display correctly."
+Store Credit,"Verify store credit applies","1. Apply store credit.
+2. Check balance.","Store credit is available.","Credit is applied successfully.","Credit should be applied successfully."
+Login,"Verify unnecessary redirects are removed","1. Log in.
+2. Check URL.","Login flow is optimized.","No unnecessary redirects occur.","No unnecessary redirects should occur."
+Shopping Cart,"Verify cart total updates dynamically","1. Add/remove items from cart.
+2. Check total.","Cart contains items.","Total updates dynamically.","Total should update dynamically."
+Search,"Verify filters are respected","1. Apply filters.
+2. Check results.","Filters are enabled.","Results match filters.","Results should match filters."
+Checkout,"Verify payment method dropdown populates","1. Proceed to checkout.
+2. Check dropdown.","Payment methods are available.","Dropdown contains payment methods.","Dropdown should contain payment methods."
+Pricing,"Verify price consistency","1. Compare prices across modules.","Prices are consistent.","Prices match across modules.","Prices should match across modules."
+Product Page,"Verify product ratings display","1. Check product ratings.","Ratings are available.","Ratings display correctly.","Ratings should display correctly."
+Authentication,"Verify two-factor authentication works","1. Enable 2FA.
+2. Log in.","2FA is enabled.","Login requires OTP.","Login should require OTP."
+Wishlist,"Verify wishlist count updates","1. Add/remove items from wishlist.
+2. Check count.","Wishlist contains items.","Count updates correctly.","Count should update correctly."
+Category Page,"Verify category page loads quickly","1. Load category page.","Category page is accessible.","Page loads within acceptable time.","Page should load within acceptable time."
+Email Notifications,"Verify password reset email is sent","1. Request password reset.
+2. Check inbox.","User account exists.","Password reset email is received.","Password reset email should be received."
+Mobile App,"Verify app does not crash on startup","1. Launch app.","App is installed.","App launches without crashing.","App should launch without crashing."
+Reviews,"Verify review star ratings align","1. Check star ratings.","Star ratings are displayed.","Stars align correctly.","Stars should align correctly."
+Checkout,"Verify shipping options display","1. Proceed to checkout.
+2. Check shipping options.","Shipping options are available.","Options display correctly.","Options should display correctly."
+Orders,"Verify order status updates","1. Place an order.
+2. Check status.","Order is placed.","Status updates correctly.","Status should update correctly."
+Promotions,"Verify free shipping banner displays","1. Check banner.","Free shipping is active.","Banner displays correctly.","Banner should display correctly."
+Search,"Verify search bar remains visible","1. Scroll down page.
+2. Check search bar.","Search bar is enabled.","Search bar remains visible.","Search bar should remain visible."
+Gift Cards,"Verify gift card redemption works","1. Redeem gift card.
+2. Check balance.","Gift card is valid.","Card is redeemed successfully.","Card should be redeemed successfully."
+Support,"Verify chatbot avoids duplicates","1. Ask a question.
+2. Check responses.","Chatbot is enabled.","No duplicate responses are sent.","No duplicate responses should be sent."
+Inventory,"Verify stock levels display correctly","1. Check stock levels.","Stock levels are updated.","Levels display correctly.","Levels should display correctly."
+Returns,"Verify return labels generate","1. Generate return label.","Return is initiated.","Label generates successfully.","Label should generate successfully."
+Localization,"Verify date format is correct","1. Check date display.","Regional settings are applied.","Date format matches region.","Date format should match region."
+Recommendations,"Verify out-of-stock items are excluded","1. Check recommendations.","Recommendations are displayed.","Out-of-stock items are excluded.","Out-of-stock items should be excluded."
+Account Settings,"Verify phone number updates","1. Update phone number.
+2. Save changes.","User is logged in.","Phone number updates successfully.","Phone number should update successfully."
+Shipping,"Verify delivery date estimates","1. Check delivery date.","Delivery date is estimated.","Date is displayed.","Date should be displayed."
+Comparison Tool,"Verify comparison table layout","1. Compare products.
+2. Check table layout.","Comparison table is enabled.","Layout is correct.","Layout should be correct."
+Seller Feedback,"Verify feedback score updates","1. Leave feedback.
+2. Check score.","Feedback is submitted.","Score updates correctly.","Score should update correctly."
+Order History,"Verify order details expand","1. Expand order details.","Order history is accessible.","Details expand correctly.","Details should expand correctly."
+Homepage,"Verify featured products carousel works","1. Navigate carousel.","Carousel is enabled.","Carousel navigates smoothly.","Carousel should navigate smoothly."
+Coupons,"Verify coupon code field is enabled","1. Check coupon field.","Field is present.","Field is enabled.","Field should be enabled."
+Invoicing,"Verify invoice downloads","1. Download invoice.","Invoice is generated.","Invoice downloads successfully.","Invoice should download successfully."
+Profile Management,"Verify profile changes save","1. Make profile changes.
+2. Save.","User is logged in.","Changes save successfully.","Changes should save successfully."
+Sorting,"Verify sort by 'Newest' works","1. Sort by 'Newest'.
+2. Check results.","Products are sortable.","Results match criteria.","Results should match criteria."
+Subscriptions,"Verify subscription pause works","1. Pause subscription.
+2. Check status.","Subscription is active.","Subscription is paused.","Subscription should be paused."
+Tracking,"Verify tracking map loads","1. Check tracking map.","Map is enabled.","Map loads correctly.","Map should load correctly."
+FAQ,"Verify FAQ categories are clickable","1. Click category.","Categories are enabled.","Category expands correctly.","Category should expand correctly."
+Refunds,"Verify refund amount is correct","1. Request refund.
+2. Check amount.","Refund is requested.","Amount matches expected value.","Amount should match expected value."
+Orders,"Verify cancellation confirmation displays","1. Cancel order.
+2. Check confirmation.","Order is canceled.","Confirmation displays.","Confirmation should display."
+Currency,"Verify currency symbol displays","1. Check currency symbol.","Currency is supported.","Symbol displays correctly.","Symbol should display correctly."
+Product Variants,"Verify variant images switch","1. Switch variant.
+2. Check image.","Variants have images.","Image switches correctly.","Image should switch correctly."
+Checkout,"Verify payment method icons display","1. Check icons.","Icons are enabled.","Icons display correctly.","Icons should display correctly."
+Digital Downloads,"Verify download speed is acceptable","1. Download file.","File is available.","Download completes within acceptable time.","Download should complete within acceptable time."
+Bulk Orders,"Verify bulk order import works","1. Import bulk order.
+2. Check results.","File is valid.","Orders are imported successfully.","Orders should be imported successfully."
+Mobile App,"Verify app does not freeze during checkout","1. Proceed to checkout.","Checkout is initiated.","App does not freeze.","App should not freeze."
+Authentication,"Verify social media login works","1. Log in via social media.","Social media login is enabled.","Login succeeds.","Login should succeed."
+Product Images,"Verify thumbnails load","1. Check thumbnails.","Thumbnails are enabled.","Thumbnails load correctly.","Thumbnails should load correctly."
+Tax,"Verify multi-state tax calculation","1. Place multi-state order.
+2. Check tax.","Multi-state tax is applicable.","Tax is calculated correctly.","Tax should be calculated correctly."
+Account Management,"Verify account deletion works","1. Delete account.
+2. Confirm deletion.","Account is eligible for deletion.","Account is deleted successfully.","Account should be deleted successfully."
+Social Sharing,"Verify share counts update","1. Share content.
+2. Check count.","Share counts are enabled.","Count updates correctly.","Count should update correctly."
+Navigation,"Verify menu stability","1. Interact with menu.","Menu is enabled.","Menu does not collapse unexpectedly.","Menu should not collapse unexpectedly."
+Store Credit,"Verify balance calculation","1. Apply store credit.
+2. Check balance.","Store credit is available.","Balance calculates correctly.","Balance should calculate correctly."
+Login,"Verify login button responsiveness","1. Click login button.","Button is enabled.","Button responds correctly.","Button should respond correctly."

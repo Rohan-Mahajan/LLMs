@@ -27,24 +27,26 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Data Loading and Document Preparation
 # --------------------------------------------------------------------
 groq_api = userdata.get("groq_api_key")
-df = pd.read_csv("/content/defects.csv")  # Contains defects and solutions
+# Load defects CSV (using the new column names)
+df = pd.read_csv("/content/defects.csv")  # Columns: defects-module, description, solution, severity level, affected area, detection date, resolved by
 
-# Load the test cases CSV into a global DataFrame.
-# We expect columns: "Error", "Module", "TestCase", "Type"
+# Load or create the test cases CSV.
+# Expected columns: module, test scenario, test steps, pre requisites, pass fail, expected result
 try:
     test_cases_df = pd.read_csv("/content/test_cases.csv")
 except Exception as e:
     logging.warning("Test cases file not found or unreadable. Creating an empty DataFrame.")
-    test_cases_df = pd.DataFrame(columns=["Error", "Module", "TestCase", "Type"])
+    test_cases_df = pd.DataFrame(columns=["module", "test scenario", "test steps", "pre requisites", "pass fail", "expected result"])
 
 docs = []
 for _, row in df.iterrows():
-    if pd.notna(row["Description"]) and pd.notna(row["Solution"]):
+    # Use new column names for module, description, and solution.
+    if pd.notna(row["description"]) and pd.notna(row["solution"]):
         docs.append(Document(
-            page_content=row["Description"],
+            page_content=row["description"],
             metadata={
-                "solution": row["Solution"],
-                "module": row["Module"]
+                "solution": row["solution"],
+                "module": row["defects-module"]
             }
         ))
 
@@ -66,75 +68,107 @@ def classify_test_case(tc_text: str) -> str:
     return "negative" if any(kw in text_lower for kw in negative_keywords) else "positive"
 
 # --------------------------------------------------------------------
-# Helper: Get CSV Test Cases Filtered by Module and Error
+# Helper: Format a test case row into a displayable string.
 # --------------------------------------------------------------------
-def get_csv_test_cases(module: str, error: str):
+def format_test_case_from_row(row: pd.Series) -> str:
+    return (f"**Test Scenario**: {row['test scenario']}\n"
+            f"**Test Steps**: {row['test steps']}\n"
+            f"**Pre Requisites**: {row['pre requisites']}\n"
+            f"**Pass/Fail**: {row['pass fail']}\n"
+            f"**Expected Result**: {row['expected result']}")
+
+# --------------------------------------------------------------------
+# Helper: Get CSV Test Cases Filtered by Module
+# --------------------------------------------------------------------
+def get_csv_test_cases(module: str):
     """
-    Returns a tuple of two lists: (positive_test_cases, negative_test_cases).
-    Each test case is considered valid if it contains the required sections.
-    The CSV is filtered by both the given module and error.
+    Returns two lists: (positive_test_cases, negative_test_cases).
+    Each test case is reconstructed from the CSV row.
     """
-    required_sections = [
-        "Test Scenario",
-        "Test Steps",
-        "Pre Requisites",
-        "Expected Results",
-        "Pass/Fail Criteria"
-    ]
-    def is_valid_tc(tc_text: str) -> bool:
-        return all(section in tc_text for section in required_sections)
-    
     positive_cases = []
     negative_cases = []
     
     global test_cases_df
     df_filtered = test_cases_df.copy()
     if not df_filtered.empty:
-        if "Module" in df_filtered.columns:
-            df_filtered = df_filtered[df_filtered["Module"] == module]
-        if "Error" in df_filtered.columns:
-            df_filtered = df_filtered[df_filtered["Error"] == error]
+        df_filtered = df_filtered[df_filtered["module"] == module]
     
-        for _, row in df_filtered.iterrows():
-            # Look for the test case text in the "TestCase" column.
-            tc_text = row.get("TestCase", "")
-            if pd.isna(tc_text):
-                continue
-            tc_text = str(tc_text).strip()
-            if is_valid_tc(tc_text):
-                classification = classify_test_case(tc_text)
-                if classification == "positive":
-                    positive_cases.append(tc_text)
-                else:
-                    negative_cases.append(tc_text)
+    for _, row in df_filtered.iterrows():
+        # Reconstruct test case text from the CSV row.
+        tc_text = (f"Test Scenario: {row['test scenario']} "
+                   f"Test Steps: {row['test steps']} "
+                   f"Pre Requisites: {row['pre requisites']} "
+                   f"Expected Result: {row['expected result']} "
+                   f"Pass/Fail: {row['pass fail']}")
+        classification = classify_test_case(tc_text)
+        if classification == "positive":
+            positive_cases.append(row)
+        else:
+            negative_cases.append(row)
     return positive_cases, negative_cases
+
+# --------------------------------------------------------------------
+# Helper: Parse a generated test case string into its components.
+# Expected format from LLM:
+# 1. **Test Scenario**: <text>
+#    **Test Steps**: <text>
+#    **Pre Requisites**: <text>
+#    **Expected Results**: <text>
+#    **Pass/Fail Criteria**: <text>
+# ### END TEST CASE ###
+# --------------------------------------------------------------------
+def parse_test_case(tc_text: str):
+    markers = ["**Test Scenario**:", "**Test Steps**:", "**Pre Requisites**:", "**Expected Results**:", "**Pass/Fail Criteria**:"]
+    extracted = {}
+    for i, marker in enumerate(markers):
+        start = tc_text.find(marker)
+        if start == -1:
+            return None  # Missing required section.
+        content_start = start + len(marker)
+        # Determine the end of this section by looking for the next marker.
+        if i < len(markers) - 1:
+            next_marker = markers[i+1]
+            end = tc_text.find(next_marker, content_start)
+            if end == -1:
+                return None
+            extracted[marker] = tc_text[content_start:end].strip()
+        else:
+            extracted[marker] = tc_text[content_start:].strip()
+    # Map to our CSV columns.
+    # Note: The CSV columns order is: module, test scenario, test steps, pre requisites, pass fail, expected result.
+    # Our generated text gives Expected Results then Pass/Fail Criteria.
+    return {
+        "test scenario": extracted["**Test Scenario**:"],
+        "test steps": extracted["**Test Steps**:"],
+        "pre requisites": extracted["**Pre Requisites**:"],
+        "pass fail": extracted["**Pass/Fail Criteria**:"],
+        "expected result": extracted["**Expected Results**:"]
+    }
 
 # --------------------------------------------------------------------
 # Helper: Save New Test Cases to CSV (avoiding duplicates)
 # --------------------------------------------------------------------
-def save_new_test_cases(new_cases: List[dict]):
+def save_new_test_cases(new_cases: List[dict], module: str):
     """
-    new_cases: list of dictionaries with keys "Error", "Module", "TestCase", "Type".
-    This function appends only new (non-duplicate) test cases to the global CSV.
+    new_cases: list of dictionaries with keys: test scenario, test steps, pre requisites, pass fail, expected result.
+    The function appends only new (non-duplicate) test cases to the global CSV.
     """
     global test_cases_df
-    required_columns = ["Error", "Module", "TestCase", "Type"]
-    # Create test_cases_df if empty
-    if test_cases_df.empty:
-        test_cases_df = pd.DataFrame(columns=required_columns)
-    
     rows_to_add = []
     for case in new_cases:
         duplicate = test_cases_df[
-            (test_cases_df["Error"] == case["Error"]) &
-            (test_cases_df["Module"] == case["Module"]) &
-            (test_cases_df["TestCase"] == case["TestCase"]) &
-            (test_cases_df["Type"] == case["Type"])
+            (test_cases_df["module"] == module) &
+            (test_cases_df["test scenario"] == case["test scenario"]) &
+            (test_cases_df["test steps"] == case["test steps"]) &
+            (test_cases_df["pre requisites"] == case["pre requisites"]) &
+            (test_cases_df["pass fail"] == case["pass fail"]) &
+            (test_cases_df["expected result"] == case["expected result"])
         ]
         if duplicate.empty:
             rows_to_add.append(case)
     if rows_to_add:
         new_df = pd.DataFrame(rows_to_add)
+        new_df["module"] = module  # Ensure module column is set.
         test_cases_df = pd.concat([test_cases_df, new_df], ignore_index=True)
         test_cases_df.to_csv("/content/test_cases.csv", index=False)
         logging.info("Saved %d new test case(s) to CSV.", len(rows_to_add))
@@ -167,7 +201,7 @@ def validate_or_generate_test_cases(state: AgentState):
         solution = context.metadata["solution"]
         module = context.metadata["module"]
 
-        # Generate explanation for the solution.
+        # Generate an explanation for the solution.
         explanation_prompt = """
         [INST] Explain why this solution fixes the following error:
         Error: {error}
@@ -178,22 +212,20 @@ def validate_or_generate_test_cases(state: AgentState):
         formatted_explanation = explanation_template.format_prompt(error=error_message, solution=solution)
         explanation = llm.invoke(formatted_explanation.to_messages()).content.strip()
 
-        # Delimiter used by the LLM outputs.
+        # Delimiter for LLM output.
         delimiter = "\n### END TEST CASE ###\n"
-        required_count = 2  # We require 2 positive and 2 negative test cases.
+        required_count = 2  # Require 2 positive and 2 negative test cases.
 
-        # Attempt to fetch test cases from the CSV file based on module and error.
-        pos_csv, neg_csv = get_csv_test_cases(module, error_message)
-        logging.info("Fetched %d positive and %d negative CSV test cases.", len(pos_csv), len(neg_csv))
+        # First, attempt to fetch test cases from the CSV by module.
+        pos_csv, neg_csv = get_csv_test_cases(module)
+        logging.info("Fetched %d positive and %d negative test cases from CSV.", len(pos_csv), len(neg_csv))
+        new_generated_cases = []  # To store new test cases that need to be saved.
 
-        new_generated_cases = []  # List to store any newly generated test cases for saving.
-
-        # If valid CSV test cases exist, and we have at least 2 of each, use them.
+        # Check if we have enough test cases.
         if len(pos_csv) >= required_count and len(neg_csv) >= required_count:
             final_pos = pos_csv[:required_count]
             final_neg = neg_csv[:required_count]
         else:
-            # Determine how many test cases are missing.
             missing_pos = max(0, required_count - len(pos_csv))
             missing_neg = max(0, required_count - len(neg_csv))
             generated_pos = []
@@ -205,26 +237,23 @@ def validate_or_generate_test_cases(state: AgentState):
                 Error: {error}
                 Solution: {solution}
 
-                Each test case MUST include the following sections, and end with the delimiter "### END TEST CASE ###":
-                - **Test Scenario**: A short description of the scenario.
-                - **Test Steps**: Step-by-step instructions.
-                - **Pre Requisites**: Conditions before running the test.
-                - **Expected Results**: What should happen if the solution works.
-                - **Pass/Fail Criteria**: How to determine if the test passes.
-
-                Output format (including the delimiter):
-                1. **Test Scenario**: 
-                   **Test Steps**: 
-                   **Pre Requisites**: 
-                   **Expected Results**: 
-                   **Pass/Fail Criteria**: 
+                Each test case MUST include the following sections and end with the delimiter "### END TEST CASE ###":
+                - **Test Scenario**:
+                - **Test Steps**:
+                - **Pre Requisites**:
+                - **Expected Results**:
+                - **Pass/Fail Criteria**:
                 ### END TEST CASE ###
                 """.format(count=missing_pos, error=error_message, solution=solution)
                 pos_template = ChatPromptTemplate.from_template(pos_prompt)
                 formatted_pos = pos_template.format_prompt().to_messages()
                 pos_response = llm.invoke(formatted_pos).content.strip()
-                generated_pos = [tc.strip() for tc in re.split(delimiter, pos_response) if tc.strip()]
-                generated_pos = generated_pos[:missing_pos]
+                # Split generated text using the delimiter.
+                raw_generated_pos = [tc.strip() for tc in re.split(delimiter, pos_response) if tc.strip()]
+                for tc_text in raw_generated_pos[:missing_pos]:
+                    parsed = parse_test_case(tc_text)
+                    if parsed:
+                        generated_pos.append(parsed)
             
             if missing_neg > 0:
                 neg_prompt = """
@@ -232,56 +261,38 @@ def validate_or_generate_test_cases(state: AgentState):
                 Error: {error}
                 Solution: {solution}
 
-                Each test case MUST include the following sections, and end with the delimiter "### END TEST CASE ###":
-                - **Test Scenario**: A short description of the scenario.
-                - **Test Steps**: Step-by-step instructions.
-                - **Pre Requisites**: Conditions before running the test.
-                - **Expected Results**: What should happen if the solution fails.
-                - **Pass/Fail Criteria**: How to determine if the test fails.
-
-                Output format (including the delimiter):
-                1. **Test Scenario**: 
-                   **Test Steps**: 
-                   **Pre Requisites**: 
-                   **Expected Results**: 
-                   **Pass/Fail Criteria**: 
+                Each test case MUST include the following sections and end with the delimiter "### END TEST CASE ###":
+                - **Test Scenario**:
+                - **Test Steps**:
+                - **Pre Requisites**:
+                - **Expected Results**:
+                - **Pass/Fail Criteria**:
                 ### END TEST CASE ###
                 """.format(count=missing_neg, error=error_message, solution=solution)
                 neg_template = ChatPromptTemplate.from_template(neg_prompt)
                 formatted_neg = neg_template.format_prompt().to_messages()
                 neg_response = llm.invoke(formatted_neg).content.strip()
-                generated_neg = [tc.strip() for tc in re.split(delimiter, neg_response) if tc.strip()]
-                generated_neg = generated_neg[:missing_neg]
+                raw_generated_neg = [tc.strip() for tc in re.split(delimiter, neg_response) if tc.strip()]
+                for tc_text in raw_generated_neg[:missing_neg]:
+                    parsed = parse_test_case(tc_text)
+                    if parsed:
+                        generated_neg.append(parsed)
             
-            # Combine CSV test cases with newly generated ones.
-            final_pos = (pos_csv + generated_pos)[:required_count]
-            final_neg = (neg_csv + generated_neg)[:required_count]
-
+            # Combine the CSV cases (if any) with newly generated ones.
+            final_pos = ( [row for row in pos_csv] + generated_pos )[:required_count]
+            final_neg = ( [row for row in neg_csv] + generated_neg )[:required_count]
+            
             # Save the newly generated test cases to CSV.
-            for tc in generated_pos:
-                new_generated_cases.append({
-                    "Error": error_message,
-                    "Module": module,
-                    "TestCase": tc,
-                    "Type": "positive"
-                })
-            for tc in generated_neg:
-                new_generated_cases.append({
-                    "Error": error_message,
-                    "Module": module,
-                    "TestCase": tc,
-                    "Type": "negative"
-                })
-            if new_generated_cases:
-                save_new_test_cases(new_generated_cases)
+            if generated_pos or generated_neg:
+                save_new_test_cases(generated_pos + generated_neg, module)
         
-        # Prepare the output text by labeling each test case.
+        # Prepare the output text.
         test_cases_text = ""
-        for idx, tc in enumerate(final_pos, start=1):
-            test_cases_text += f"**Positive Test Case {idx}:**\n{tc}\n\n"
-        for idx, tc in enumerate(final_neg, start=1):
-            test_cases_text += f"**Negative Test Case {idx}:**\n{tc}\n\n"
-
+        for idx, row in enumerate(final_pos, start=1):
+            test_cases_text += f"**Positive Test Case {idx}:**\n{format_test_case_from_row(row)}\n\n"
+        for idx, row in enumerate(final_neg, start=1):
+            test_cases_text += f"**Negative Test Case {idx}:**\n{format_test_case_from_row(row)}\n\n"
+        
         response_template = (
             "**Error:**\n{Error}\n\n"
             "**Solution:**\n{Solution}\n\n"
@@ -391,3 +402,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
